@@ -6,7 +6,15 @@
     @Component({name: "compb"})
     export default class Comp extends Vue{
         mounted(){
-            console.log("compoment a mounted")
+            console.log("compoment b mounted")
+        }
+
+        activated() {
+            console.log("compoment b activated")
+        }
+
+        deactivated() {
+            console.log("compoment b deactivated")
         }
     }
 </script>
