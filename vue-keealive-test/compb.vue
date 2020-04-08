@@ -16,6 +16,10 @@
         deactivated() {
             console.log("compoment b deactivated")
         }
+
+        destroyed(){
+            console.log("compoment b destroyed")
+        }
     }
 </script>
 <style scoped>

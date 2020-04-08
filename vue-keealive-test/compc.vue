@@ -1,24 +1,24 @@
 <template>
-    <div>component a</div>
+    <div>component c</div>
 </template>
 <script lang="ts">
     import {Vue, Component} from "vue-property-decorator"
-    @Component({name: "compa"})
+    @Component({name: "compc"})
     export default class Comp extends Vue{
-        mounted() {
-            console.log("compoment a mounted")
+        mounted(){
+            console.log("compoment c mounted")
         }
 
         activated() {
-            console.log("compoment a activated")
+            console.log("compoment c activated")
         }
 
         deactivated() {
-            console.log("compoment a deactivated")
+            console.log("compoment c deactivated")
         }
 
         destroyed(){
-            console.log("compoment a destroyed")
+            console.log("compoment c destroyed")
         }
     }
 </script>

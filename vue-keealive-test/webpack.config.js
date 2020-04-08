@@ -1,5 +1,6 @@
 const {VueLoaderPlugin} = require("vue-loader")
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 const path = require('path')
 
 module.exports = {
@@ -54,7 +55,7 @@ module.exports = {
         ]
     },
     optimization: {
-        minimize: false,
+        minimize: false,     
         splitChunks: {
             chunks: "initial",
             minSize: 102400,
