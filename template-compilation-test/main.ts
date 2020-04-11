@@ -1,5 +1,6 @@
 import {VueCompilation} from "./VueCompilation"
 import * as HtmlParser from "node-html-parser"
+import {writeFileSync} from 'fs'
 
 var vue = '<div>\
 <div>{{count}}</div>\
@@ -60,4 +61,4 @@ var html = '\
 </div>\r\n\
 <script type="text/javascript">\r\n'
 html = html + func + '</script>\r\n'
-console.log(html)
+writeFileSync("output.html", html)
