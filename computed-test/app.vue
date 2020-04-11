@@ -2,15 +2,7 @@
     <div>
         <div>{{count}}</div>
         <button @click="addClick">点击我</button>
-        <div>
-            <span>Hello World</span>
-            <div>
-                <div>
-                    <div>Nested</div>
-                </div>
-            </div>
-            <div>{{anotherCount}}</div>
-        </div>
+        <div>{{anotherCount}}</div>
         <button @click="addAnotherClick">更新我</button>
         <div v-for="item in arr">{{item}}</div>
     </div>
