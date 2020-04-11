@@ -36,7 +36,7 @@ export class VueCompilation{
         var gen = this.converToExpression(cloneNode, nodeName + "data.")
         ret = ret + "for (var inx = 0; inx < " + varaible + ".length; ++inx){\r\n"
         ret = ret + "var " + nodeName + "data = " + varaible + "[inx]\r\n"
-        ret = ret +  gen.func + "\r\n"
+        ret = ret +  gen.func
         ret = ret + nodeName + ".push(" + gen.node + ")\r\n"
         ret = ret + "}\r\n"
 
@@ -90,9 +90,9 @@ export class VueCompilation{
         for (var inx = 0; inx < node.children.length; ++inx){
             if (node.children[inx].loop){
                 var gen = this.convertToLoopExpression(node.children[inx], prefix)
-                ret = ret + gen.func + "\r\n"
+                ret = ret + gen.func
                 ret = ret + "for (var inx = 0; inx < " + gen.node + ".length; ++inx){\r\n"
-                ret = ret + "\t" + nodeName + ".appendChild(" + gen.node + "[inx])\r\n"
+                ret = ret + nodeName + ".appendChild(" + gen.node + "[inx])\r\n"
                 ret = ret + "}\r\n"
 
             }
@@ -101,14 +101,14 @@ export class VueCompilation{
                 var gen = this.converToExpression(node.children[inx], prefix)
                 if (node.children[inx].variable){
                     ret = ret + "if(" + prefix + node.children[inx].variable + "){\r\n"
-                    ret = ret + gen.func + "\r\n"
+                    ret = ret + gen.func
                     ret = ret + nodeName + ".appendChild(" + gen.node + ")\r\n"
                     ret = ret + "}\r\n"
                 }
             }
             else{
                 var gen = this.converToExpression(node.children[inx], prefix)
-                ret = ret + gen.func + "\r\n"
+                ret = ret + gen.func
                 ret = ret + nodeName + ".appendChild(" + gen.node + ")\r\n"
             }
         }

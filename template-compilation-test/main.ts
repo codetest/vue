@@ -6,29 +6,36 @@ var vue = '<div>\
 <button>点击我</button>\
 <div>当前个数{{anotherCount}}</div>\
 <div v-for="{{arr}}">{{text}}</div>\
-<div v-if="{{con}}">{{text1}}</div>\
+<div v-if="{{con}}"><div v-for="{{arr1}}">{{text}}</div></div>\
 <button>更新我</button>\
 </div>'
 
-
-const rgx: RegExp = /\{\{([^\{\}]+)\}\}/g
-function processText(text: string, prefix: string): string{
-  var outputText = ""
-  var match = rgx.exec(text)
-  var preInx = 0
-  while(match){
-      outputText = outputText + "\"" + text.substr(preInx, match.index - preInx)
-      outputText = outputText + "\" + _s(" + match[1] + ")"
-      preInx = match.index + match[0].length
-      match = rgx.exec(text)
-      if (match){
-        outputText = outputText + " + "
-      }
-  }
-
-  
-  outputText = outputText + " + \"" + text.substr(preInx, text.length - preInx)
-  return outputText + "\""
+var data = {
+  count: 9,
+  anotherCount: 10,
+  con: 2,
+  arr: [
+    {
+      text: "text1"
+    },
+    {
+      text: "text2"
+    },
+    {
+      text: "text3"
+    }
+  ],
+  arr1: [
+    {
+      text: "text1"
+    },
+    {
+      text: "text2"
+    },
+    {
+      text: "text3"
+    }
+  ]
 }
 
 var root = VueCompilation.parseVNode(HtmlParser.parse(vue))
@@ -46,4 +53,11 @@ function _s(val){\r\n\
 }\r\n\
 "
 var func = funcPrefx + ret.func
-console.log(func)
+func = "var data = " + JSON.stringify(data) + "\r\n" + func
+func = func + "document.getElementById('app').appendChild(node0)\r\n"
+var html = '\
+<div id="app">\r\n\
+</div>\r\n\
+<script type="text/javascript">\r\n'
+html = html + func + '</script>\r\n'
+console.log(html)
