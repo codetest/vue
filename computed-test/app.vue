@@ -2,8 +2,17 @@
     <div>
         <div>{{count}}</div>
         <button @click="addClick">点击我</button>
-        <div>{{anotherCount}}</div>
+        <div>
+            <span>Hello World</span>
+            <div>
+                <div>
+                    <div>Nested</div>
+                </div>
+            </div>
+            <div>{{anotherCount}}</div>
+        </div>
         <button @click="addAnotherClick">更新我</button>
+        <div v-for="item in arr">{{item}}</div>
     </div>
 </template>
 <script lang="ts">
@@ -12,6 +21,7 @@
     export default class App extends Vue{
         cnt: number = 0;
         anotherCnt: number = 0
+        arr: number[] = [1, 3, 6, 7]
         mounted(){
             console.log("app mounted")
         }
