@@ -18,39 +18,6 @@ export interface FuncGen{
 
 export class VueCompilation{
     private static id: number = 0
-    private static createNode(tag: string, text: string): HTMLElement{
-        var ele = document.createElement(tag)
-        var textNode = document.createTextNode(text)
-        ele.appendChild(textNode)
-        return ele;
-    }
-
-    private static convertToLoopExpression(node: VNode, prefix: string, itemChain: string[]): FuncGen{
-        var nodeName = "node" + (this.id++)
-        var ret = "var " + nodeName + " = [];\r\n";
-        var varaible = prefix
-        if (node.variable){
-            varaible = varaible + node.variable
-        }
-
-        var cloneItemChain:string[] = []
-        for (var inx = 0; inx < itemChain.length; ++inx){
-            cloneItemChain.push(itemChain[inx])
-        }
-
-        cloneItemChain.push(node.item)
-        var cloneNode: VNode = {tag: node.tag, children: node.children, text: node.text, cond: false, loop: false}
-        var gen = this.converToExpression(cloneNode, nodeName + "data.", cloneItemChain)
-        ret = ret + "for (var inx = 0; inx < " + varaible + ".length; ++inx){\r\n"
-        ret = ret + "var " + node.item + " = " + varaible + "[inx]\r\n"
-        ret = ret +  gen.func
-        ret = ret + nodeName + ".push(" + gen.node + ")\r\n"
-        ret = ret + "}\r\n"
-
-        return {func: ret, node: nodeName}
-    }
-
-
     private static proccessLoop(text: string, node: VNode){
         const rgx = /^\s*(\w+)\s+in\s+(\w+)\s*$/
         var match = rgx.exec(text)
@@ -99,37 +66,73 @@ export class VueCompilation{
         return outputText
     }
 
-    static converToExpression(node:VNode, prefix: string, itemChain: string[]): FuncGen{
+    private static linePrefix(level: number): string{
+        var ret: string = ""
+        for (var inx = 0; inx < level; ++inx){
+            ret = ret + "\t"
+        }
+
+        return ret;
+    }
+
+    private static convertToLoopExpression(node: VNode, prefix: string, itemChain: string[], level: number): FuncGen{
+        var lineP = this.linePrefix(level)
+        var nodeName = "node" + (this.id++)
+        var ret = lineP + "var " + nodeName + " = [];\r\n";
+        var varaible = prefix
+        if (node.variable){
+            varaible = varaible + node.variable
+        }
+
+        var cloneItemChain:string[] = []
+        for (var inx = 0; inx < itemChain.length; ++inx){
+            cloneItemChain.push(itemChain[inx])
+        }
+
+        cloneItemChain.push(node.item)
+        var cloneNode: VNode = {tag: node.tag, children: node.children, text: node.text, cond: false, loop: false}
+        var gen = this.converToExpression(cloneNode, nodeName + "data.", cloneItemChain, level + 1)
+        ret = ret + lineP + "for (var inx = 0; inx < " + varaible + ".length; ++inx){\r\n"
+        ret = ret +  lineP + "\tvar " + node.item + " = " + varaible + "[inx]\r\n"
+        ret = ret +  gen.func
+        ret = ret + lineP +  "\t" + nodeName + ".push(" + gen.node + ")\r\n"
+        ret = ret +  lineP + "}\r\n"
+
+        return {func: ret, node: nodeName}
+    }
+
+    static converToExpression(node:VNode, prefix: string, itemChain: string[], level: number): FuncGen{
+        var lineP = this.linePrefix(level)
         var nodeName = "node" + (this.id++)
         var ret = ""
         if (node.text) {
-            ret = "var " + nodeName + " = _c('" + node.tag + "', " +  this.processText(node.text, prefix, itemChain) +  ")\r\n"
+            ret = lineP + "var " + nodeName + " = _c('" + node.tag + "', " +  this.processText(node.text, prefix, itemChain) +  ")\r\n"
         }
         else{
-            ret = "var " + nodeName +  " = _c('" + node.tag + "', '')\r\n" 
+            ret = lineP + "var " + nodeName +  " = _c('" + node.tag + "', '')\r\n" 
         }
 
         for (var inx = 0; inx < node.children.length; ++inx){
             if (node.children[inx].loop){
-                var gen = this.convertToLoopExpression(node.children[inx], prefix, itemChain)
+                var gen = this.convertToLoopExpression(node.children[inx], prefix, itemChain, level)
                 ret = ret + gen.func
-                ret = ret + "for (var inx = 0; inx < " + gen.node + ".length; ++inx){\r\n"
-                ret = ret + nodeName + ".appendChild(" + gen.node + "[inx])\r\n"
-                ret = ret + "}\r\n"
+                ret = ret + lineP + "for (var inx = 0; inx < " + gen.node + ".length; ++inx){\r\n"
+                ret = ret + lineP + "\t" + nodeName + ".appendChild(" + gen.node + "[inx])\r\n"
+                ret = ret + lineP + "}\r\n"
 
             }
             else if (node.children[inx].cond)
             {
-                var gen = this.converToExpression(node.children[inx], prefix, itemChain)
-                ret = ret + "if(" + prefix + node.children[inx].variable + "){\r\n"
+                var gen = this.converToExpression(node.children[inx], prefix, itemChain, level + 1)
+                ret = ret + lineP + "if(" + prefix + node.children[inx].variable + "){\r\n"
                 ret = ret + gen.func
-                ret = ret + nodeName + ".appendChild(" + gen.node + ")\r\n"
-                ret = ret + "}\r\n"
+                ret = ret +  lineP + "\t" + nodeName + ".appendChild(" + gen.node + ")\r\n"
+                ret = ret + lineP + "}\r\n"
             }
             else{
-                var gen = this.converToExpression(node.children[inx], prefix, itemChain)
+                var gen = this.converToExpression(node.children[inx], prefix, itemChain, level)
                 ret = ret + gen.func
-                ret = ret + nodeName + ".appendChild(" + gen.node + ")\r\n"
+                ret = ret + lineP + nodeName + ".appendChild(" + gen.node + ")\r\n"
             }
         }
 

@@ -30,22 +30,22 @@ var data = {
 }
 
 var root = VueCompilation.parseVNode(HtmlParser.parse(vue))
-var ret = VueCompilation.converToExpression(root.children[0], "data.", [])
+var ret = VueCompilation.converToExpression(root.children[0], "data.", [], 1)
 var funcPrefx = 
-"function _c(tag, txt){\r\n\
-  var ele = document.createElement(tag)\r\n\
-  if (txt){\r\n\
-    ele.appendChild(document.createTextNode(txt))\r\n\
-  }\r\n\
-  return ele\r\n\
-}\r\n\
-function _s(val){\r\n\
-   return val.toString()\r\n\
-}\r\n\
+"\tfunction _c(tag, txt){\r\n\
+\t\tvar ele = document.createElement(tag)\r\n\
+\t\tif (txt){\r\n\
+\t\t\tele.appendChild(document.createTextNode(txt))\r\n\
+\t\t}\r\n\
+\t\treturn ele\r\n\
+\t}\r\n\
+\tfunction _s(val){\r\n\
+\t\treturn val.toString()\r\n\
+\t}\r\n\
 "
 var func = funcPrefx + ret.func
-func = "var data = " + JSON.stringify(data) + "\r\n" + func
-func = func + "document.getElementById('app').appendChild(node0)\r\n"
+func = "\tvar data = " + JSON.stringify(data) + "\r\n" + func
+func = func + "\tdocument.getElementById('app').appendChild(node0)\r\n"
 var html = '\
 <div id="app">\r\n\
 </div>\r\n\
