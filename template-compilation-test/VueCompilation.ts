@@ -7,6 +7,7 @@ export interface VNode{
     loop: boolean;
     cond: boolean;
     variable?: string;
+    item?: string;
 }
 
 export interface FuncGen{
@@ -24,7 +25,7 @@ export class VueCompilation{
         return ele;
     }
 
-    private static convertToLoopExpression(node: VNode, prefix: string): FuncGen{
+    private static convertToLoopExpression(node: VNode, prefix: string, itemChain: string[]): FuncGen{
         var nodeName = "node" + (this.id++)
         var ret = "var " + nodeName + " = [];\r\n";
         var varaible = prefix
@@ -32,10 +33,16 @@ export class VueCompilation{
             varaible = varaible + node.variable
         }
 
+        var cloneItemChain:string[] = []
+        for (var inx = 0; inx < itemChain.length; ++inx){
+            cloneItemChain.push(itemChain[inx])
+        }
+
+        cloneItemChain.push(node.item)
         var cloneNode: VNode = {tag: node.tag, children: node.children, text: node.text, cond: false, loop: false}
-        var gen = this.converToExpression(cloneNode, nodeName + "data.")
+        var gen = this.converToExpression(cloneNode, nodeName + "data.", cloneItemChain)
         ret = ret + "for (var inx = 0; inx < " + varaible + ".length; ++inx){\r\n"
-        ret = ret + "var " + nodeName + "data = " + varaible + "[inx]\r\n"
+        ret = ret + "var " + node.item + " = " + varaible + "[inx]\r\n"
         ret = ret +  gen.func
         ret = ret + nodeName + ".push(" + gen.node + ")\r\n"
         ret = ret + "}\r\n"
@@ -44,13 +51,14 @@ export class VueCompilation{
     }
 
 
-    private static extractVariable(text: string){
-        const rgx: RegExp = /\{\{([^\{\}]+)\}\}/g
+    private static proccessLoop(text: string, node: VNode){
+        const rgx = /^\s*(\w+)\s+in\s+(\w+)\s*$/
         var match = rgx.exec(text)
-        return match[1]
+        node.variable = match[2]
+        node.item = match[1]
     }
 
-    private static processText(text: string, prefix: string): string{
+    private static processText(text: string, prefix: string, itemChain: string[]): string{
         const rgx: RegExp = /\{\{([^\{\}]+)\}\}/g
         var outputText = ""
         var match = rgx.exec(text)
@@ -60,7 +68,21 @@ export class VueCompilation{
                 outputText = outputText + (preInx > 0 ? " + ": "") +  "\"" +  text.substr(preInx, match.index - preInx) + "\" + "
             }
 
-            outputText = outputText + " _s(" + prefix + match[1] + ")"
+            var variable = match[1]
+            var scopedVariable = false
+            for (var inx = 0; inx < itemChain.length; ++inx){
+                if (variable == itemChain[inx]){
+                    scopedVariable = true;
+                    break;
+                }
+
+                if (variable.startsWith(itemChain[inx] + ".")){
+                    scopedVariable = true
+                    break
+                }
+            }
+
+            outputText = outputText + " _s(" + (scopedVariable ? "" : prefix) + match[1] + ")"
             preInx = match.index + match[0].length
             match = rgx.exec(text)
         }
@@ -77,11 +99,11 @@ export class VueCompilation{
         return outputText
     }
 
-    static converToExpression(node:VNode, prefix: string): FuncGen{
+    static converToExpression(node:VNode, prefix: string, itemChain: string[]): FuncGen{
         var nodeName = "node" + (this.id++)
         var ret = ""
         if (node.text) {
-            ret = "var " + nodeName + " = _c('" + node.tag + "', " +  this.processText(node.text, prefix) +  ")\r\n"
+            ret = "var " + nodeName + " = _c('" + node.tag + "', " +  this.processText(node.text, prefix, itemChain) +  ")\r\n"
         }
         else{
             ret = "var " + nodeName +  " = _c('" + node.tag + "', '')\r\n" 
@@ -89,7 +111,7 @@ export class VueCompilation{
 
         for (var inx = 0; inx < node.children.length; ++inx){
             if (node.children[inx].loop){
-                var gen = this.convertToLoopExpression(node.children[inx], prefix)
+                var gen = this.convertToLoopExpression(node.children[inx], prefix, itemChain)
                 ret = ret + gen.func
                 ret = ret + "for (var inx = 0; inx < " + gen.node + ".length; ++inx){\r\n"
                 ret = ret + nodeName + ".appendChild(" + gen.node + "[inx])\r\n"
@@ -98,16 +120,14 @@ export class VueCompilation{
             }
             else if (node.children[inx].cond)
             {
-                var gen = this.converToExpression(node.children[inx], prefix)
-                if (node.children[inx].variable){
-                    ret = ret + "if(" + prefix + node.children[inx].variable + "){\r\n"
-                    ret = ret + gen.func
-                    ret = ret + nodeName + ".appendChild(" + gen.node + ")\r\n"
-                    ret = ret + "}\r\n"
-                }
+                var gen = this.converToExpression(node.children[inx], prefix, itemChain)
+                ret = ret + "if(" + prefix + node.children[inx].variable + "){\r\n"
+                ret = ret + gen.func
+                ret = ret + nodeName + ".appendChild(" + gen.node + ")\r\n"
+                ret = ret + "}\r\n"
             }
             else{
-                var gen = this.converToExpression(node.children[inx], prefix)
+                var gen = this.converToExpression(node.children[inx], prefix, itemChain)
                 ret = ret + gen.func
                 ret = ret + nodeName + ".appendChild(" + gen.node + ")\r\n"
             }
@@ -122,12 +142,12 @@ export class VueCompilation{
             var node: VNode = {tag: ele.tagName, children: [], text: "", loop: false, cond: false}
             if (ele.hasAttribute("v-for")){
                 node.loop = true
-                node.variable = this.extractVariable(ele.getAttribute("v-for"))
+                this.proccessLoop(ele.getAttribute("v-for"), node)
             }
 
             if (ele.hasAttribute("v-if")){
                 node.cond = true
-                node.variable = this.extractVariable(ele.getAttribute("v-if"))
+                node.variable = ele.getAttribute("v-if")
             }
 
             if (ele.childNodes && ele.childNodes.length) {

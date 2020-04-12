@@ -6,8 +6,8 @@ var vue = '<div>\
 <div>{{count}}</div>\
 <button>点击我</button>\
 <div>当前个数{{anotherCount}}</div>\
-<div v-for="{{arr}}">{{text}}</div>\
-<div v-if="{{con}}"><div v-for="{{arr1}}">{{text}}</div></div>\
+<div v-for="text in arr">{{text}}</div>\
+<div v-if="con"><div v-for="item in arr1">{{item.obj}}</div></div>\
 <button>更新我</button>\
 </div>'
 
@@ -15,32 +15,22 @@ var data = {
   count: 9,
   anotherCount: 10,
   con: 2,
-  arr: [
-    {
-      text: "text1"
-    },
-    {
-      text: "text2"
-    },
-    {
-      text: "text3"
-    }
-  ],
+  arr: [1, 3, 9],
   arr1: [
     {
-      text: "text1"
+      obj: "text1"
     },
     {
-      text: "text2"
+      obj: "text2"
     },
     {
-      text: "text3"
+      obj: "text3"
     }
   ]
 }
 
 var root = VueCompilation.parseVNode(HtmlParser.parse(vue))
-var ret = VueCompilation.converToExpression(root.children[0], "data.")
+var ret = VueCompilation.converToExpression(root.children[0], "data.", [])
 var funcPrefx = 
 "function _c(tag, txt){\r\n\
   var ele = document.createElement(tag)\r\n\

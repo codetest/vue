@@ -1,10 +1,11 @@
 <template>
     <div>
-        <div>{{count}}</div>
-        <button @click="addClick">点击我</button>
-        <div>{{anotherCount}}</div>
-        <button @click="addAnotherClick">更新我</button>
+        <div>点击次数{{count}}</div>
+        <button>点击我</button>
+        <div>更新次数{{anotherCount}}</div>
+        <button>更新我</button>
         <div v-for="item in arr">{{item}}</div>
+        <div v-if="cond">条件显示</div>
     </div>
 </template>
 <script lang="ts">
@@ -14,6 +15,7 @@
         cnt: number = 0;
         anotherCnt: number = 0
         arr: number[] = [1, 3, 6, 7]
+        cond: boolean = false
         mounted(){
             console.log("app mounted")
         }
